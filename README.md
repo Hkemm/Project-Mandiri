@@ -1,2 +1,6 @@
 # Project-Mandiri
-membuat web juak beli sederhana 
+membuat web jual beli sederhana denga  pov sebuah toko yang memiliki sebuah web jual beli
+
+
+
+https://youtu.be/XNTsF-TS5CU
