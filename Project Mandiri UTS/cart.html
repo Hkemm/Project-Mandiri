@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TokoKu - Keranjang</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+  </head>
+  <body>
+    <header>
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+          <a class="navbar-brand" href="index.html">TokoKu</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+              <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+              <li class="nav-item"><a class="nav-link" href="products.html">Produk</a></li>
+              <li class="nav-item"><a class="nav-link" href="contact.html">Kontak</a></li>
+              <li class="nav-item"><a class="nav-link active" href="cart.html">Keranjang (<span id="cart-count">0</span>)</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container py-4">
+      <h1>Keranjang Belanja</h1>
+      <div id="cart-container">
+        <!-- cart JS -->
+      </div>
+      <div class="mt-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="btn-group">
+            <button id="clear-cart" class="btn btn-danger me-2 btn-rounded">Kosongkan Keranjang</button>
+            <a href="products.html" class="btn btn-secondary btn-rounded">Lanjut Belanja</a>
+          </div>
+          <div>
+            <button id="pay-btn" class="btn btn-success btn-rounded">Bayar</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container">TokoKu</div>
+    </footer>
+
+    <!-- Bootstrap Bundle-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/app.js"></script>
+    <script>
+      //keranjang: kontrol jumlah, hapus item, pembaruan langsung
+      document.addEventListener('DOMContentLoaded', function(){
+        const getCart = (window.TokoKu && window.TokoKu.getCart) || function(){ try{return JSON.parse(localStorage.getItem('tk_cart')||'[]')}catch(e){return []} };
+        const saveCart = (window.TokoKu && window.TokoKu.saveCart) || function(c){ localStorage.setItem('tk_cart', JSON.stringify(c)); };
+        const PRODUCTS = (window.TokoKu && window.TokoKu.PRODUCTS) || [];
+        const container = document.getElementById('cart-container');
+        const cartCountEl = document.getElementById('cart-count');
+
+        function formatRupiah(v){ return 'Rp ' + v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+
+        function updateCartCount(){ const cart = getCart(); const count = cart.reduce((s,i)=>s+i.qty,0); if(cartCountEl) cartCountEl.textContent = count; }
+
+        function renderCart(){
+          const cart = getCart();
+          container.innerHTML = '';
+          if(!cart.length){ container.innerHTML = '<p>Keranjang kosong.</p>'; updateCartCount(); return; }
+          let total = 0;
+          const table = document.createElement('table'); table.className = 'table';
+          table.innerHTML = '<thead><tr><th>Produk</th><th>Qty</th><th>Harga</th><th>Subtotal</th><th></th></tr></thead>';
+          const tbody = document.createElement('tbody');
+          cart.forEach(item=>{
+            const p = PRODUCTS.find(x=>x.id===item.id) || {title:'(produk hilang)',price:0};
+            const subtotal = p.price * item.qty; total += subtotal;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${p.title}</td>
+              <td>
+                <div class="input-group input-group-sm" style="width:160px;">
+                  <button class="btn btn-outline-secondary btn-decrease" data-id="${item.id}" type="button">-</button>
+                  <input class="form-control text-center qty-input" value="${item.qty}" data-id="${item.id}" style="max-width:64px;" />
+                  <button class="btn btn-outline-secondary btn-increase" data-id="${item.id}" type="button">+</button>
+                </div>
+              </td>
+              <td>${formatRupiah(p.price)}</td>
+              <td>${formatRupiah(subtotal)}</td>
+              <td><button class="btn btn-sm btn-danger btn-remove" data-id="${item.id}">Hapus</button></td>
+            `;
+            tbody.appendChild(tr);
+          });
+          table.appendChild(tbody);
+          const foot = document.createElement('div'); foot.className='mt-3'; foot.innerHTML = `<h4>Total: ${formatRupiah(total)}</h4>`;
+          container.appendChild(table); container.appendChild(foot);
+
+          // pasang handler
+          container.querySelectorAll('.btn-increase').forEach(b=>b.addEventListener('click', e=>{ changeQty(parseInt(b.dataset.id), 1); }));
+          container.querySelectorAll('.btn-decrease').forEach(b=>b.addEventListener('click', e=>{ changeQty(parseInt(b.dataset.id), -1); }));
+          container.querySelectorAll('.qty-input').forEach(i=>i.addEventListener('change', e=>{ const id = parseInt(i.dataset.id); const v = parseInt(i.value) || 0; setQty(id, v); }));
+          container.querySelectorAll('.btn-remove').forEach(b=>b.addEventListener('click', e=>{ const id = parseInt(b.dataset.id); showConfirm('remove', id); }));
+
+          updateCartCount();
+        }
+
+        function changeQty(id, delta){ const cart = getCart(); const it = cart.find(x=>x.id===id); if(!it) return; it.qty = Math.max(0, it.qty + delta); if(it.qty === 0){ const idx = cart.findIndex(x=>x.id===id); if(idx>-1) cart.splice(idx,1); } saveCart(cart); renderCart(); }
+        function setQty(id, qty){ const cart = getCart(); const it = cart.find(x=>x.id===id); if(!it) return; qty = Math.max(0, qty); if(qty===0){ const idx = cart.findIndex(x=>x.id===id); if(idx>-1) cart.splice(idx,1); } else { it.qty = qty; } saveCart(cart); renderCart(); }
+        function removeItem(id){ const cart = getCart(); const idx = cart.findIndex(x=>x.id===id); if(idx>-1){ cart.splice(idx,1); saveCart(cart); renderCart(); } }
+
+  // render awal
+        renderCart();
+
+  // kosongkan keranjang (dengan konfirmasi)
+        const clearBtn = document.getElementById('clear-cart'); if(clearBtn) clearBtn.addEventListener('click', function(){ showConfirm('clear'); });
+
+  // logika modal konfirmasi
+        function showConfirm(action, id){
+          const modalEl = document.getElementById('confirmModal');
+          if(!modalEl) return;
+          const msgEl = document.getElementById('confirmMessage');
+          modalEl.dataset.action = action || '';
+          modalEl.dataset.itemId = id || '';
+          if(action === 'clear') msgEl.textContent = 'Apakah Anda yakin ingin mengosongkan keranjang?';
+          else if(action === 'remove') msgEl.textContent = 'Apakah Anda yakin ingin menghapus item ini dari keranjang?';
+          else msgEl.textContent = 'Konfirmasi tindakan?';
+          const m = new bootstrap.Modal(modalEl);
+          m.show();
+        }
+
+  // handler tombol konfirmasi
+        const confirmYes = document.getElementById('confirmYes'); if(confirmYes){ confirmYes.addEventListener('click', function(){ const modalEl = document.getElementById('confirmModal'); if(!modalEl) return; const action = modalEl.dataset.action; const itemId = parseInt(modalEl.dataset.itemId);
+            if(action === 'clear'){ localStorage.removeItem('tk_cart'); renderCart(); updateCartCount(); }
+            else if(action === 'remove'){ removeItem(itemId); }
+            const m = bootstrap.Modal.getInstance(modalEl); if(m) m.hide(); }); }
+
+  // tombol bayar: (konfirmasi dua langkah)
+        const payBtn = document.getElementById('pay-btn'); if(payBtn){ payBtn.addEventListener('click', function(){ showPaymentSummary(); }); }
+
+  function buildPaymentSummary(){
+          const cart = getCart();
+          const lines = [];
+          let total = 0;
+          cart.forEach(item=>{
+            const p = PRODUCTS.find(x=>x.id===item.id) || {title:'(produk hilang)',price:0};
+            const subtotal = p.price * item.qty; total += subtotal;
+            lines.push({title:p.title, qty:item.qty, price:p.price, subtotal});
+          });
+          return {lines, total};
+        }
+
+  function showPaymentSummary(){
+          const summary = buildPaymentSummary();
+          const container = document.getElementById('paymentSummary');
+          if(!container) return;
+          container.innerHTML = '';
+          if(!summary.lines.length){ container.innerHTML = '<p>Keranjang kosong.</p>'; }
+          else{
+            const table = document.createElement('table'); table.className='table';
+            table.innerHTML = '<thead><tr><th>Produk</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead>';
+            const tbody = document.createElement('tbody');
+            summary.lines.forEach(l=>{ const tr = document.createElement('tr'); tr.innerHTML = `<td>${l.title}</td><td>${l.qty}</td><td>${formatRupiah(l.price)}</td><td>${formatRupiah(l.subtotal)}</td>`; tbody.appendChild(tr); });
+            table.appendChild(tbody);
+            container.appendChild(table);
+            const foot = document.createElement('div'); foot.className='mt-2'; foot.innerHTML = `<h5>Total: ${formatRupiah(summary.total)}</h5>`; container.appendChild(foot);
+          }
+          const modalEl = document.getElementById('paymentModal'); if(modalEl){ const m = new bootstrap.Modal(modalEl); m.show(); }
+        }
+
+  // tangani konfirmasi pembayaran dari modal ringkasan
+        const confirmPayment = document.getElementById('confirmPayment'); if(confirmPayment){ confirmPayment.addEventListener('click', function(){ // perform final payment step (simulated)
+          localStorage.removeItem('tk_cart'); renderCart(); updateCartCount();
+          // hide payment modal then show thank-you
+          const modalEl = document.getElementById('paymentModal'); const pm = bootstrap.Modal.getInstance(modalEl); if(pm) pm.hide();
+          const payModalEl = document.getElementById('payModal'); if(payModalEl){ const m2 = new bootstrap.Modal(payModalEl); m2.show(); }
+        }); }
+      });
+    </script>
+
+    <!-- Modal konfirmasi bayarModal konfirmasi bayar -->
+    <div class="modal fade" id="payModal" tabindex="-1" aria-labelledby="payModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-body text-center">
+            <h5 id="payModalLabel">Terimakasih Sudah Berbelanja di Toko Kami</h5>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Tutup</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--konfirmasi  -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-body">
+            <p id="confirmMessage">Anda yakin?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="button" id="confirmYes" class="btn btn-danger">Ya, lanjutkan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--ringkasan pembayaran (langkah ganda)-->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="paymentModalLabel">Ringkasan Pesanan</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="paymentSummary">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="button" id="confirmPayment" class="btn btn-success">Konfirmasi Bayar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,1 @@
+sebuah took yang memiliki wes sendiri yang berfungsi sebagai akses untuk berbelanja secara online dan web ini masih sangat sederhana dengan menggunakan framework html css js bootstrap

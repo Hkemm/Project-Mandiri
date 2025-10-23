@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TokoKu - Kontak</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  </head>
+  <body>
+    <header>
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+          <a class="navbar-brand" href="index.html">TokoKu</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+              <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+              <li class="nav-item"><a class="nav-link" href="products.html">Produk</a></li>
+              <li class="nav-item"><a class="nav-link active" href="contact.html">Kontak</a></li>
+              <li class="nav-item"><a class="nav-link" href="cart.html">Keranjang (<span id="cart-count">0</span>)</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container contact-page">
+      <div class="row g-4">
+        <div class="col-lg-7">
+          <h1>Kontak Kami</h1>
+          <p class="muted">Punya pertanyaan seputar produk, pesanan, atau retur? Isi form di bawah dan tim kami akan merespons dalam 24–48 jam kerja.</p>
+
+          <form id="contact-form">
+            <div class="form-row">
+              <label for="name">Nama</label>
+              <input id="name" name="name" type="text" required>
+            </div>
+            <div class="form-row">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" required>
+            </div>
+            <div class="form-row">
+              <label for="order">Nomor Order (opsional)</label>
+              <input id="order" name="order" type="text" placeholder="ex: TK-2025-001">
+            </div>
+            <div class="form-row">
+              <label for="message">Pesan</label>
+              <textarea id="message" name="message" rows="5" required></textarea>
+            </div>
+            <div class="form-row">
+              <button type="submit" class="btn">Kirim</button>
+            </div>
+            <p id="contact-feedback" class="feedback"></p>
+          </form>
+        </div>
+
+        <aside class="col-lg-5">
+          <div class="card" style="padding:16px">
+            <h4>Kontak Cepat</h4>
+            <p>Email: <a href="mailto:support@tokoku.example">support@tokoku.example</a></p>
+            <p>WhatsApp: <a id="wa-link" href="https://wa.me/6281359629664" target="_blank">+62 813-5962-9664</a></p>
+            <hr>
+            <h5>Jam Operasional</h5>
+            <p>Senin–Sabtu, 09:00–21:00 (WIB)</p>
+            <hr>
+            <h5>Ikuti kami</h5>
+            <p class="social-links">
+              <a href="https://www.instagram.com/hkemm__?igsh=ajUybTR6OXFidHAy&utm_source=qr" target="_blank" title="Instagram"><i class="bi bi-instagram"></i></a>
+              <a href="#" target="_blank" title="Facebook"><i class="bi bi-facebook"></i></a>
+              <a href="#" target="_blank" title="Twitter"><i class="bi bi-twitter"></i></a>
+            </p>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container">TokoKu</div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>
